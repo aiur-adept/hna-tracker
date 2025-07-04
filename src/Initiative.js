@@ -9,6 +9,10 @@ const Initiative = () => {
   const [customCount, setCustomCount] = useState(1);
   const [initiativeOrder, setInitiativeOrder] = useState([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [tempSelectedParticipants, setTempSelectedParticipants] = useState([]);
+  const [tempCustomName, setTempCustomName] = useState('');
+  const [tempCustomCount, setTempCustomCount] = useState(1);
   
   const characters = DBService.getCharacterList();
 
@@ -41,7 +45,7 @@ const Initiative = () => {
   };
 
   const addCharacter = (character) => {
-    if (!selectedParticipants.find(p => p.id === character.id && p.type === 'character')) {
+    if (!selectedParticipants.find(p => String(p.id) === String(character.id) && p.type === 'character')) {
       setSelectedParticipants(prev => [...prev, {
         id: character.id,
         name: character.name,
@@ -231,6 +235,68 @@ const Initiative = () => {
     return nextIndex;
   };
 
+  const addCharacterToEncounter = (character) => {
+    if (!tempSelectedParticipants.find(p => String(p.id) === String(character.id) && p.type === 'character') &&
+        !initiativeOrder.find(p => String(p.id) === String(character.id) && p.type === 'character')) {
+      setTempSelectedParticipants(prev => [...prev, {
+        id: character.id,
+        name: character.name,
+        type: 'character'
+      }]);
+    }
+  };
+
+  const addCustomParticipantToEncounter = () => {
+    if (tempCustomName.trim() && tempCustomCount > 0) {
+      const newParticipants = Array.from({ length: tempCustomCount }, (_, index) => ({
+        id: `custom-${Date.now()}-${index}`,
+        name: tempCustomCount === 1 ? tempCustomName : `${tempCustomName} ${index + 1}`,
+        type: 'custom'
+      }));
+      setTempSelectedParticipants(prev => [...prev, ...newParticipants]);
+      setTempCustomName('');
+      setTempCustomCount(1);
+    }
+  };
+
+  const removeTempParticipant = (id) => {
+    setTempSelectedParticipants(prev => prev.filter(p => p.id !== id));
+  };
+
+  const finalizeAddParticipants = () => {
+    if (tempSelectedParticipants.length > 0) {
+      const newParticipantsWithRolls = tempSelectedParticipants.map(participant => ({
+        ...participant,
+        initiative: Math.floor(Math.random() * 20) + 1,
+        health: 9,
+        status: 'active',
+        notes: ''
+      }));
+      
+      const updatedInitiativeOrder = [...initiativeOrder, ...newParticipantsWithRolls]
+        .sort((a, b) => b.initiative - a.initiative);
+      
+      const newCurrentIndex = updatedInitiativeOrder.findIndex(p => p.id === initiativeOrder[currentTurnIndex]?.id);
+      const finalCurrentIndex = newCurrentIndex >= 0 ? newCurrentIndex : currentTurnIndex;
+      
+      setInitiativeOrder(updatedInitiativeOrder);
+      setCurrentTurnIndex(finalCurrentIndex);
+      saveEncounterToStorage(updatedInitiativeOrder, finalCurrentIndex);
+    }
+    
+    setShowAddParticipant(false);
+    setTempSelectedParticipants([]);
+    setTempCustomName('');
+    setTempCustomCount(1);
+  };
+
+  const cancelAddParticipants = () => {
+    setShowAddParticipant(false);
+    setTempSelectedParticipants([]);
+    setTempCustomName('');
+    setTempCustomCount(1);
+  };
+
   const renderHealthDots = (health) => {
     const dots = [];
     for (let i = 0; i < 9; i++) {
@@ -367,6 +433,19 @@ const Initiative = () => {
         </div>
         <div className="encounter-footer">
           <div 
+            onClick={() => setShowAddParticipant(true)}
+            className="add-participant-btn"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setShowAddParticipant(true);
+              }
+            }}
+          >
+            Add Participant
+          </div>
+          <div 
             onClick={() => {
               if (window.confirm('Are you sure you want to start a new encounter? This will reset all current participants and initiative order.')) {
                 resetToSelection();
@@ -386,6 +465,166 @@ const Initiative = () => {
             New Encounter
           </div>
         </div>
+        {showAddParticipant && (
+          <div className="add-participant-modal">
+            <div className="modal-content">
+              <h3>Add Participants</h3>
+              
+              <div className="selection-section">
+                <div className="character-selection">
+                  <h4>Existing Characters</h4>
+                  <div className="character-grid">
+                    {characters.map(character => {
+                      const isAlreadyInEncounter = initiativeOrder.find(p => 
+                        String(p.id) === String(character.id) && p.type === 'character'
+                      );
+                      const isTempSelected = tempSelectedParticipants.find(p => 
+                        String(p.id) === String(character.id) && p.type === 'character'
+                      );
+                      
+                      return (
+                        <div
+                          key={character.id}
+                          onClick={() => !isAlreadyInEncounter && addCharacterToEncounter(character)}
+                          className={`character-btn ${
+                            isTempSelected ? 'selected' : ''
+                          } ${isAlreadyInEncounter ? 'disabled' : ''}`}
+                          role="button"
+                          tabIndex={isAlreadyInEncounter ? -1 : 0}
+                          onKeyDown={(e) => {
+                            if (!isAlreadyInEncounter && (e.key === 'Enter' || e.key === ' ')) {
+                              addCharacterToEncounter(character);
+                            }
+                          }}
+                        >
+                          {character.name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="custom-participant">
+                  <h4>Add Custom Participants</h4>
+                  <div className="custom-inputs">
+                    <input
+                      type="text"
+                      placeholder="Name (e.g., 'goblin')"
+                      value={tempCustomName}
+                      onChange={(e) => setTempCustomName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addCustomParticipantToEncounter()}
+                    />
+                    <div className="count-controls">
+                      <div
+                        onClick={() => setTempCustomCount(prev => Math.max(1, prev - 1))}
+                        className="count-btn minus-btn"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setTempCustomCount(prev => Math.max(1, prev - 1));
+                          }
+                        }}
+                      >
+                        −
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={tempCustomCount}
+                        onChange={(e) => setTempCustomCount(parseInt(e.target.value) || 1)}
+                      />
+                      <div
+                        onClick={() => setTempCustomCount(prev => Math.min(20, prev + 1))}
+                        className="count-btn plus-btn"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setTempCustomCount(prev => Math.min(20, prev + 1));
+                          }
+                        }}
+                      >
+                        +
+                      </div>
+                    </div>
+                    <div 
+                      onClick={addCustomParticipantToEncounter} 
+                      className="add-custom-btn"
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          addCustomParticipantToEncounter();
+                        }
+                      }}
+                    >
+                      Add
+                    </div>
+                  </div>
+                </div>
+
+                <div className="selected-participants">
+                  <h4>Selected Participants ({tempSelectedParticipants.length})</h4>
+                  {tempSelectedParticipants.length === 0 ? (
+                    <p className="no-participants">No participants selected</p>
+                  ) : (
+                    <div className="participants-list">
+                      {tempSelectedParticipants.map(participant => (
+                        <div key={participant.id} className="participant-item">
+                          <span>{participant.name}</span>
+                          <div
+                            onClick={() => removeTempParticipant(participant.id)}
+                            className="remove-participant-btn"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                removeTempParticipant(participant.id);
+                              }
+                            }}
+                          >
+                            ×
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <div 
+                  onClick={cancelAddParticipants}
+                  className="cancel-btn"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      cancelAddParticipants();
+                    }
+                  }}
+                >
+                  Cancel
+                </div>
+                <div 
+                  onClick={tempSelectedParticipants.length > 0 ? finalizeAddParticipants : undefined}
+                  className={`add-to-encounter-btn ${tempSelectedParticipants.length === 0 ? 'disabled' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && tempSelectedParticipants.length > 0) {
+                      finalizeAddParticipants();
+                    }
+                  }}
+                >
+                  Add to Encounter ({tempSelectedParticipants.length})
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div 
           onClick={passTurn}
           className="pass-turn-btn-fixed"
