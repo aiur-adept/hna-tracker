@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Initiative.css';
 import DBService from './DBService';
 
@@ -11,6 +11,34 @@ const Initiative = () => {
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   
   const characters = DBService.getCharacterList();
+
+  useEffect(() => {
+    const savedEncounter = localStorage.getItem('hna-initiative-encounter');
+    if (savedEncounter) {
+      try {
+        const encounterData = JSON.parse(savedEncounter);
+        setInitiativeOrder(encounterData.initiativeOrder || []);
+        setCurrentTurnIndex(encounterData.currentTurnIndex || 0);
+        setMode('encounter');
+      } catch (error) {
+        console.error('Failed to parse saved encounter data:', error);
+        localStorage.removeItem('hna-initiative-encounter');
+      }
+    }
+  }, []);
+
+  const saveEncounterToStorage = (initiativeOrder, currentTurnIndex) => {
+    const encounterData = {
+      initiativeOrder,
+      currentTurnIndex,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('hna-initiative-encounter', JSON.stringify(encounterData));
+  };
+
+  const clearEncounterFromStorage = () => {
+    localStorage.removeItem('hna-initiative-encounter');
+  };
 
   const addCharacter = (character) => {
     if (!selectedParticipants.find(p => p.id === character.id && p.type === 'character')) {
@@ -52,7 +80,7 @@ const Initiative = () => {
     setInitiativeOrder(sortedParticipants);
     setCurrentTurnIndex(0);
     setMode('encounter');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveEncounterToStorage(sortedParticipants, 0);
   };
 
   const resetToSelection = () => {
@@ -60,6 +88,7 @@ const Initiative = () => {
     setInitiativeOrder([]);
     setCurrentTurnIndex(0);
     setMode('selection');
+    clearEncounterFromStorage();
   };
 
   const scrollToParticipant = (participantId) => {
@@ -71,10 +100,14 @@ const Initiative = () => {
         
         const scrollTop = window.pageYOffset + elementRect.top - (windowHeight / 2) + (elementRect.height / 2);
         
-        window.scrollTo({
-          top: scrollTop,
-          behavior: 'smooth'
-        });
+        if ('scrollBehavior' in document.documentElement.style) {
+          window.scrollTo({
+            top: scrollTop,
+            behavior: 'smooth'
+          });
+        } else {
+          window.scrollTo(0, scrollTop);
+        }
       }
     }, 100);
   };
@@ -91,49 +124,68 @@ const Initiative = () => {
     
     const nextParticipantId = initiativeOrder[nextIndex].id;
     setCurrentTurnIndex(nextIndex);
+    saveEncounterToStorage(initiativeOrder, nextIndex);
     scrollToParticipant(nextParticipantId);
   };
 
   const toggleInactive = (participantId) => {
-    setInitiativeOrder(prev => prev.map(participant => 
-      participant.id === participantId 
-        ? { ...participant, status: participant.status === 'inactive' ? 'active' : 'inactive' }
-        : participant
-    ));
-    
-    if (currentTurnIndex === initiativeOrder.findIndex(p => p.id === participantId)) {
-      const nextIndex = getNextActiveIndex();
-      const nextParticipantId = initiativeOrder[nextIndex].id;
-      setCurrentTurnIndex(nextIndex);
-      scrollToParticipant(nextParticipantId);
-    }
+    setInitiativeOrder(prev => {
+      const updatedOrder = prev.map(participant => 
+        participant.id === participantId 
+          ? { ...participant, status: participant.status === 'inactive' ? 'active' : 'inactive' }
+          : participant
+      );
+      
+      if (currentTurnIndex === updatedOrder.findIndex(p => p.id === participantId)) {
+        const nextIndex = getNextActiveIndex();
+        const nextParticipantId = updatedOrder[nextIndex].id;
+        setCurrentTurnIndex(nextIndex);
+        saveEncounterToStorage(updatedOrder, nextIndex);
+        scrollToParticipant(nextParticipantId);
+      } else {
+        saveEncounterToStorage(updatedOrder, currentTurnIndex);
+      }
+      
+      return updatedOrder;
+    });
   };
 
   const setDead = (participantId) => {
-    setInitiativeOrder(prev => prev.map(participant => 
-      participant.id === participantId 
-        ? { 
-            ...participant, 
-            status: participant.status === 'dead' ? 'active' : 'dead',
-            health: participant.status === 'dead' ? participant.health : 0
-          }
-        : participant
-    ));
-    
-    if (currentTurnIndex === initiativeOrder.findIndex(p => p.id === participantId)) {
-      const nextIndex = getNextActiveIndex();
-      const nextParticipantId = initiativeOrder[nextIndex].id;
-      setCurrentTurnIndex(nextIndex);
-      scrollToParticipant(nextParticipantId);
-    }
+    setInitiativeOrder(prev => {
+      const updatedOrder = prev.map(participant => 
+        participant.id === participantId 
+          ? { 
+              ...participant, 
+              status: participant.status === 'dead' ? 'active' : 'dead',
+              health: participant.status === 'dead' ? participant.health : 0
+            }
+          : participant
+      );
+      
+      if (currentTurnIndex === updatedOrder.findIndex(p => p.id === participantId)) {
+        const nextIndex = getNextActiveIndex();
+        const nextParticipantId = updatedOrder[nextIndex].id;
+        setCurrentTurnIndex(nextIndex);
+        saveEncounterToStorage(updatedOrder, nextIndex);
+        scrollToParticipant(nextParticipantId);
+      } else {
+        saveEncounterToStorage(updatedOrder, currentTurnIndex);
+      }
+      
+      return updatedOrder;
+    });
   };
 
   const updateNotes = (participantId, notes) => {
-    setInitiativeOrder(prev => prev.map(participant => 
-      participant.id === participantId 
-        ? { ...participant, notes }
-        : participant
-    ));
+    setInitiativeOrder(prev => {
+      const updatedOrder = prev.map(participant => 
+        participant.id === participantId 
+          ? { ...participant, notes }
+          : participant
+      );
+      saveEncounterToStorage(updatedOrder, currentTurnIndex);
+      return updatedOrder;
+    });
   };
 
   const adjustHealth = (participantId, amount) => {
@@ -155,11 +207,13 @@ const Initiative = () => {
             const nextIndex = getNextActiveIndex();
             const nextParticipantId = updatedOrder[nextIndex].id;
             setCurrentTurnIndex(nextIndex);
+            saveEncounterToStorage(updatedOrder, nextIndex);
             scrollToParticipant(nextParticipantId);
           }, 0);
         }
       }
       
+      saveEncounterToStorage(updatedOrder, currentTurnIndex);
       return updatedOrder;
     });
   };
@@ -195,25 +249,6 @@ const Initiative = () => {
       <div className="initiative-tracker">
         <div className="encounter-header">
           <h2>Initiative Order</h2>
-          <div 
-            onClick={() => {
-              if (window.confirm('Are you sure you want to start a new encounter? This will reset all current participants and initiative order.')) {
-                resetToSelection();
-              }
-            }} 
-            className="reset-btn"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                if (window.confirm('Are you sure you want to start a new encounter? This will reset all current participants and initiative order.')) {
-                  resetToSelection();
-                }
-              }
-            }}
-          >
-            New Encounter
-          </div>
         </div>
         
 
@@ -254,7 +289,7 @@ const Initiative = () => {
                       Activate
                     </div>
                   )}
-                  {index === currentTurnIndex && participant.status === 'active' && (
+                  {participant.status === 'active' && (
                     <>
                       <div
                         onClick={() => toggleInactive(participant.id)}
@@ -280,7 +315,7 @@ const Initiative = () => {
                           }
                         }}
                       >
-                        Died
+                        Die
                       </div>
                     </>
                   )}
@@ -332,6 +367,27 @@ const Initiative = () => {
             </div>
           ))}
         </div>
+        <div className="encounter-footer">
+          <div 
+            onClick={() => {
+              if (window.confirm('Are you sure you want to start a new encounter? This will reset all current participants and initiative order.')) {
+                resetToSelection();
+              }
+            }} 
+            className="reset-btn"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                if (window.confirm('Are you sure you want to start a new encounter? This will reset all current participants and initiative order.')) {
+                  resetToSelection();
+                }
+              }
+            }}
+          >
+            New Encounter
+          </div>
+        </div>
         <div 
           onClick={passTurn}
           className="pass-turn-btn-fixed"
@@ -352,6 +408,22 @@ const Initiative = () => {
   return (
     <div className="initiative-tracker">
       <h2>Initiative Tracker</h2>
+      
+      <div className="roll-initiative-section">
+        <div
+          onClick={selectedParticipants.length > 0 ? rollInitiative : undefined}
+          className={`roll-initiative-btn ${selectedParticipants.length === 0 ? 'disabled' : ''}`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && selectedParticipants.length > 0) {
+              rollInitiative();
+            }
+          }}
+        >
+          Roll Initiative ({selectedParticipants.length} participants)
+        </div>
+      </div>
       
       <div className="selection-section">
         <h3>Select Participants</h3>
@@ -469,22 +541,6 @@ const Initiative = () => {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="action-buttons">
-          <div
-            onClick={selectedParticipants.length > 0 ? rollInitiative : undefined}
-            className={`roll-initiative-btn ${selectedParticipants.length === 0 ? 'disabled' : ''}`}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && selectedParticipants.length > 0) {
-                rollInitiative();
-              }
-            }}
-          >
-            Roll Initiative ({selectedParticipants.length} participants)
-          </div>
         </div>
       </div>
     </div>

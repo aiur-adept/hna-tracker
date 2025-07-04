@@ -7,9 +7,10 @@ const initial = {
   { id: 5, name: 'leivosa', check: 11, stat: 'brawn', description: 'levitation' }
   ],
   characters: [
-    { id: 1, name: 'Harry Potter' },
-    { id: 2, name: 'Hermione Granger' },
-    { id: 3, name: 'Ron Weasley' }
+    { id: 1, name: 'Boots' },
+    { id: 2, name: 'Juniper' },
+    { id: 3, name: 'Maeve' },
+    { id: 3, name: 'Naya' }
   ]
 };
 

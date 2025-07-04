@@ -8,6 +8,8 @@
   min-height: 100vh;
   color: var(--text-primary);
   font-family: 'Silkscreen', monospace;
+  box-sizing: border-box;
+
 }
 
 .initiative-tracker h2 {
@@ -17,6 +19,17 @@
   margin-bottom: 32px;
   text-align: center;
   letter-spacing: 0.5px;
+}
+
+.roll-initiative-section {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.roll-initiative-section .roll-initiative-btn {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 400px;
 }
 
 .selection-section h3 {
@@ -292,9 +305,17 @@
 
 .encounter-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 30px;
+}
+
+.encounter-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px;
+  margin-bottom: 100px;
 }
 
 .reset-btn {
@@ -463,6 +484,7 @@
   transition: all 0.3s ease;
   cursor: pointer;
   gap: 12px;
+  min-height: 80px;
 }
 
 .initiative-item.current-turn {
@@ -524,6 +546,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .status-buttons {
@@ -611,6 +634,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  flex: 1;
+  gap: 16px;
 }
 
 .participant-name-section {
@@ -618,12 +643,18 @@
   align-items: center;
   gap: 12px;
   flex: 1;
+  min-width: 0;
 }
 
 .participant-name {
   font-size: 1.1rem;
   font-weight: 500;
   color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .initiative-item.current-turn .participant-name {
@@ -723,7 +754,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 16px;
+  flex-shrink: 0;
 }
 
 .health-btn {
@@ -844,7 +875,10 @@
 
 @media (max-width: 768px) {
   .initiative-tracker {
+    box-sizing: border-box;
     padding: 16px;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .initiative-tracker h2 {
@@ -869,5 +903,61 @@
   .custom-inputs input[type="number"] {
     min-width: auto;
     width: auto;
+  }
+
+  .initiative-item {
+    padding: 12px 16px;
+    min-height: auto;
+  }
+
+  .participant-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .participant-name-section {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .participant-name {
+    font-size: 1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .health-controls {
+    width: 100%;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .health-dots {
+    gap: 1px;
+  }
+
+  .health-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .participant-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .initiative-roll {
+    font-size: 0.9rem;
+    padding: 6px 10px;
+  }
+
+  .resurrect-btn,
+  .activate-btn,
+  .deactivate-btn,
+  .died-btn {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 }
