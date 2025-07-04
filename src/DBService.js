@@ -10,7 +10,7 @@ const initial = {
     { id: 1, name: 'Boots' },
     { id: 2, name: 'Juniper' },
     { id: 3, name: 'Maeve' },
-    { id: 3, name: 'Naya' }
+    { id: 4, name: 'Naya' }
   ]
 };
 
