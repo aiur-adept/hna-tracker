@@ -898,8 +898,8 @@
   background: var(--primary-green);
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 24px;
+  border-radius: 5px;
+  width: 42px;
   height: 24px;
   display: flex;
   align-items: center;
