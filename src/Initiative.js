@@ -636,7 +636,7 @@ const Initiative = () => {
             }
           }}
         >
-          PASS
+          NEXT
         </div>
       </div>
     );
