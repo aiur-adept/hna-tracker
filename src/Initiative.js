@@ -351,9 +351,7 @@ const Initiative = () => {
                     +
                   </div>
                 </div>
-                <div className="participant-controls">
-                  <span className="initiative-roll">{participant.initiative}</span>
-                </div>
+
               </div>
               <div className="participant-notes">
                 <input
