@@ -1,0 +1,130 @@
+@import './shared.css';
+
+.spell-list {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--background);
+  min-height: 100vh;
+  color: var(--text-primary); 
+  font-family: 'Silkscreen', monospace;
+  font-size: 24px;
+}
+
+.add-spell-section {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.add-spell-form {
+  background: var(--surface);
+  padding: 24px;
+  border-radius: 8px;
+  margin-top: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .add-spell-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.add-spell-form input {
+  background: var(--dark-grey);
+  border: 1px solid var(--dark-grey-light);
+  border-radius: 4px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.add-spell-form input:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.add-spell-form input::placeholder {
+  color: var(--text-secondary);
+}
+
+.spells-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.spell-item {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--primary-green);
+}
+
+.spell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.spell-header h3 {
+  margin: 0;
+  color: var(--primary-green);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.remove-btn {
+  background: var(--error);
+  padding: 0.618rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: bold;
+  user-select: none;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.spell-item p {
+  color: var(--text-secondary);
+  margin: 8px 0;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.spell-item p::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+ 
