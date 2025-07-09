@@ -2,14 +2,21 @@ import React from 'react';
 
 const CustomParticipantForm = ({ 
   customName, 
-  customCount, 
+  customCount,
+  customNotes,
+  customHealth,
+  customStats,
   onCustomNameChange, 
-  onCustomCountChange, 
+  onCustomCountChange,
+  onCustomNotesChange,
+  onCustomHealthChange,
+  onCustomStatsChange,
   onAddCustomParticipant 
 }) => {
+  const stats = ['grit', 'fight', 'flight', 'brains', 'brawn', 'charm'];
+
   return (
     <div className="custom-participant">
-      <h4>Add Custom Participants</h4>
       <div className="custom-inputs">
         <input
           type="text"
@@ -18,6 +25,22 @@ const CustomParticipantForm = ({
           onChange={(e) => onCustomNameChange(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && onAddCustomParticipant()}
         />
+        <input
+          type="text"
+          placeholder="Notes (optional)"
+          value={customNotes}
+          onChange={(e) => onCustomNotesChange(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && onAddCustomParticipant()}
+        />
+        <input
+          type="number"
+          placeholder="Health"
+          value={customHealth}
+          onChange={(e) => onCustomHealthChange(e.target.value === '' ? '' : parseInt(e.target.value) || 9)}
+          onKeyPress={(e) => e.key === 'Enter' && onAddCustomParticipant()}
+          className="health-input"
+        />
+        Count:
         <div className="count-controls">
           <div
             onClick={() => onCustomCountChange(prev => Math.max(1, prev - 1))}
@@ -34,25 +57,44 @@ const CustomParticipantForm = ({
           </div>
           <input
             type="number"
-            min="1"
-            max="20"
             value={customCount}
             onChange={(e) => onCustomCountChange(parseInt(e.target.value) || 1)}
           />
           <div
-            onClick={() => onCustomCountChange(prev => Math.min(20, prev + 1))}
+            onClick={() => onCustomCountChange(prev => prev + 1)}
             className="count-btn plus-btn"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
-                onCustomCountChange(prev => Math.min(20, prev + 1));
+                onCustomCountChange(prev => prev + 1);
               }
             }}
           >
             +
           </div>
         </div>
+      </div>
+      <div className="stats-section">
+        <h5>Stats</h5>
+        <div className="stats-grid">
+          {stats.map(stat => (
+            <div key={stat} className="stat-control">
+              <label>{stat}</label>
+              <input
+                type="number"
+                value={customStats[stat] || ''}
+                onChange={(e) => onCustomStatsChange({
+                  ...customStats,
+                  [stat]: e.target.value === '' ? '' : parseInt(e.target.value) || 9
+                })}
+                className="stat-input"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="modal-add-section">
         <div 
           onClick={onAddCustomParticipant} 
           className="add-custom-btn"
@@ -64,7 +106,7 @@ const CustomParticipantForm = ({
             }
           }}
         >
-          Add
+          Add Participant
         </div>
       </div>
     </div>

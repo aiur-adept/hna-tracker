@@ -7,10 +7,10 @@ const initial = {
   { id: 5, name: 'leivosa', check: 11, stat: 'brawn', description: 'levitation' }
   ],
   characters: [
-    { id: 1, name: 'Boots', health: 9 },
-    { id: 2, name: 'Juniper', health: 9 },
-    { id: 3, name: 'Maeve', health: 9 },
-    { id: 4, name: 'Naya', health: 9 }
+    { id: 1, name: 'Boots', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
+    { id: 2, name: 'Juniper', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
+    { id: 3, name: 'Maeve', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
+    { id: 4, name: 'Naya', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } }
   ]
 };
 
@@ -31,7 +31,13 @@ const DBService = {
   getCharacterList: () => {
     const storedCharacters = localStorage.getItem('characters');
     if (storedCharacters) {
-      return JSON.parse(storedCharacters);
+      const characters = JSON.parse(storedCharacters);
+      // Ensure all characters have stats
+      const charactersWithStats = characters.map(character => ({
+        ...character,
+        stats: character.stats || { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 }
+      }));
+      return charactersWithStats;
     }
     return initial.characters;
   },

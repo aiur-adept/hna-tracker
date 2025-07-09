@@ -7,6 +7,10 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
   const [tempSelectedParticipants, setTempSelectedParticipants] = useState([]);
   const [tempCustomName, setTempCustomName] = useState('');
   const [tempCustomCount, setTempCustomCount] = useState(1);
+  const [tempCustomNotes, setTempCustomNotes] = useState('');
+  const [tempCustomHealth, setTempCustomHealth] = useState('');
+  const [tempCustomStats, setTempCustomStats] = useState({});
+  const [showCustomModal, setShowCustomModal] = useState(false);
 
   const addCharacterToEncounter = (character) => {
     if (!tempSelectedParticipants.find(p => String(p.id) === String(character.id) && p.type === 'character') &&
@@ -14,7 +18,9 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
       setTempSelectedParticipants(prev => [...prev, {
         id: character.id,
         name: character.name,
-        type: 'character'
+        type: 'character',
+        health: character.health || 9,
+        stats: character.stats || {}
       }]);
     }
   };
@@ -24,11 +30,18 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
       const newParticipants = Array.from({ length: tempCustomCount }, (_, index) => ({
         id: `custom-${Date.now()}-${index}`,
         name: tempCustomCount === 1 ? tempCustomName : `${tempCustomName} ${index + 1}`,
-        type: 'custom'
+        type: 'custom',
+        notes: tempCustomNotes.trim(),
+        health: tempCustomHealth || 9,
+        stats: tempCustomStats
       }));
       setTempSelectedParticipants(prev => [...prev, ...newParticipants]);
       setTempCustomName('');
       setTempCustomCount(1);
+      setTempCustomNotes('');
+      setTempCustomHealth('');
+      setTempCustomStats({});
+      setShowCustomModal(false);
     }
   };
 
@@ -47,7 +60,23 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
     setTempSelectedParticipants([]);
     setTempCustomName('');
     setTempCustomCount(1);
+    setTempCustomNotes('');
+    setTempCustomHealth('');
+    setTempCustomStats({});
     onClose();
+  };
+
+  const openCustomModal = () => {
+    setShowCustomModal(true);
+  };
+
+  const closeCustomModal = () => {
+    setTempCustomName('');
+    setTempCustomCount(1);
+    setTempCustomNotes('');
+    setTempCustomHealth('');
+    setTempCustomStats({});
+    setShowCustomModal(false);
   };
 
   return (
@@ -63,13 +92,21 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
             initiativeOrder={initiativeOrder}
           />
 
-          <CustomParticipantForm
-            customName={tempCustomName}
-            customCount={tempCustomCount}
-            onCustomNameChange={setTempCustomName}
-            onCustomCountChange={setTempCustomCount}
-            onAddCustomParticipant={addCustomParticipantToEncounter}
-          />
+          <div className="custom-participant-section">
+            <div 
+              onClick={openCustomModal}
+              className="add-custom-participant-btn"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  openCustomModal();
+                }
+              }}
+            >
+              Add Custom Participant
+            </div>
+          </div>
 
           <SelectedParticipantsList
             selectedParticipants={tempSelectedParticipants}
@@ -106,6 +143,44 @@ const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, o
           </div>
         </div>
       </div>
+
+      {showCustomModal && (
+        <div className="custom-participant-modal">
+          <div className="modal-content">
+            <h3>Add Custom Participant</h3>
+            
+            <CustomParticipantForm
+              customName={tempCustomName}
+              customCount={tempCustomCount}
+              customNotes={tempCustomNotes}
+              customHealth={tempCustomHealth}
+              customStats={tempCustomStats}
+              onCustomNameChange={setTempCustomName}
+              onCustomCountChange={setTempCustomCount}
+              onCustomNotesChange={setTempCustomNotes}
+              onCustomHealthChange={setTempCustomHealth}
+              onCustomStatsChange={setTempCustomStats}
+              onAddCustomParticipant={addCustomParticipantToEncounter}
+            />
+
+            <div className="modal-actions">
+              <div 
+                onClick={closeCustomModal}
+                className="cancel-btn"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    closeCustomModal();
+                  }
+                }}
+              >
+                Cancel
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

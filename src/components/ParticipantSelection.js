@@ -6,13 +6,19 @@ import SelectedParticipantsList from './SelectedParticipantsList';
 const ParticipantSelection = ({ characters, selectedParticipants, onParticipantsChange, onRollInitiative }) => {
   const [customName, setCustomName] = useState('');
   const [customCount, setCustomCount] = useState(1);
+  const [customNotes, setCustomNotes] = useState('');
+  const [customHealth, setCustomHealth] = useState('');
+  const [customStats, setCustomStats] = useState({});
+  const [showCustomModal, setShowCustomModal] = useState(false);
 
   const addCharacter = (character) => {
     if (!selectedParticipants.find(p => String(p.id) === String(character.id) && p.type === 'character')) {
       onParticipantsChange(prev => [...prev, {
         id: character.id,
         name: character.name,
-        type: 'character'
+        type: 'character',
+        health: character.health || 9,
+        stats: character.stats || {}
       }]);
     }
   };
@@ -22,16 +28,36 @@ const ParticipantSelection = ({ characters, selectedParticipants, onParticipants
       const newParticipants = Array.from({ length: customCount }, (_, index) => ({
         id: `custom-${Date.now()}-${index}`,
         name: customCount === 1 ? customName : `${customName} ${index + 1}`,
-        type: 'custom'
+        type: 'custom',
+        notes: customNotes.trim(),
+        health: customHealth || 9,
+        stats: customStats
       }));
       onParticipantsChange(prev => [...prev, ...newParticipants]);
       setCustomName('');
       setCustomCount(1);
+      setCustomNotes('');
+      setCustomHealth('');
+      setCustomStats({});
+      setShowCustomModal(false);
     }
   };
 
   const removeParticipant = (id) => {
     onParticipantsChange(prev => prev.filter(p => p.id !== id));
+  };
+
+  const openCustomModal = () => {
+    setShowCustomModal(true);
+  };
+
+  const closeCustomModal = () => {
+    setCustomName('');
+    setCustomCount(1);
+    setCustomNotes('');
+    setCustomHealth('');
+    setCustomStats({});
+    setShowCustomModal(false);
   };
 
   return (
@@ -63,19 +89,65 @@ const ParticipantSelection = ({ characters, selectedParticipants, onParticipants
           onCharacterSelect={addCharacter}
         />
 
-        <CustomParticipantForm
-          customName={customName}
-          customCount={customCount}
-          onCustomNameChange={setCustomName}
-          onCustomCountChange={setCustomCount}
-          onAddCustomParticipant={addCustomParticipant}
-        />
+        <div className="custom-participant-section">
+          <div 
+            onClick={openCustomModal}
+            className="add-custom-participant-btn"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                openCustomModal();
+              }
+            }}
+          >
+            Add Custom Participant
+          </div>
+        </div>
 
         <SelectedParticipantsList
           selectedParticipants={selectedParticipants}
           onRemoveParticipant={removeParticipant}
         />
       </div>
+
+      {showCustomModal && (
+        <div className="custom-participant-modal">
+          <div className="modal-content">
+            <h3>Add Custom Participant</h3>
+            
+            <CustomParticipantForm
+              customName={customName}
+              customCount={customCount}
+              customNotes={customNotes}
+              customHealth={customHealth}
+              customStats={customStats}
+              onCustomNameChange={setCustomName}
+              onCustomCountChange={setCustomCount}
+              onCustomNotesChange={setCustomNotes}
+              onCustomHealthChange={setCustomHealth}
+              onCustomStatsChange={setCustomStats}
+              onAddCustomParticipant={addCustomParticipant}
+            />
+
+            <div className="modal-actions">
+              <div 
+                onClick={closeCustomModal}
+                className="cancel-btn"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    closeCustomModal();
+                  }
+                }}
+              >
+                Cancel
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

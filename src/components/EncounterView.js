@@ -146,7 +146,7 @@ const EncounterView = ({
       initiative: Math.floor(Math.random() * 20) + 1,
       health: participant.health || 9,
       status: 'active',
-      notes: ''
+      notes: participant.notes || ''
     }));
     
     const updatedInitiativeOrder = [...initiativeOrder, ...participantsWithRolls]

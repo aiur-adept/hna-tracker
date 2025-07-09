@@ -5,9 +5,15 @@ import DBService from './DBService';
 
 const CharacterList = () => {
   const [characters, setCharacters] = useState(DBService.getCharacterList());
+  const stats = ['grit', 'fight', 'flight', 'brains', 'brawn', 'charm'];
 
-  const [newCharacter, setNewCharacter] = useState({ name: '', health: 9 });
+  const [newCharacter, setNewCharacter] = useState({ 
+    name: '', 
+    health: '',
+    stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+  });
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const firstInputRef = useRef(null);
 
   const handleInputChange = (e) => {
@@ -18,18 +24,72 @@ const CharacterList = () => {
     }));
   };
 
+  const handleStatChange = (stat, value) => {
+    setNewCharacter(prev => ({
+      ...prev,
+      stats: {
+        ...prev.stats,
+        [stat]: value === '' ? '' : parseInt(value) || 9
+      }
+    }));
+  };
+
   const addCharacter = () => {
     if (newCharacter.name) {
       const updatedCharacters = [...characters, {
         id: Date.now(),
         name: newCharacter.name,
-        health: newCharacter.health
+        health: newCharacter.health,
+        stats: newCharacter.stats
       }];
       setCharacters(updatedCharacters);
       DBService.saveCharacterList(updatedCharacters);
-      setNewCharacter({ name: '', health: 9 });
+      setNewCharacter({ 
+        name: '', 
+        health: '',
+        stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+      });
       setShowForm(false);
     }
+  };
+
+  const startEditing = (character) => {
+    setEditingId(character.id);
+    setNewCharacter({
+      name: character.name,
+      health: character.health,
+      stats: character.stats || { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+    });
+    setShowForm(true);
+  };
+
+  const saveEdit = () => {
+    if (newCharacter.name && editingId) {
+      const updatedCharacters = characters.map(character => 
+        character.id === editingId 
+          ? { ...character, name: newCharacter.name, health: newCharacter.health, stats: newCharacter.stats }
+          : character
+      );
+      setCharacters(updatedCharacters);
+      DBService.saveCharacterList(updatedCharacters);
+      setNewCharacter({ 
+        name: '', 
+        health: '',
+        stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+      });
+      setShowForm(false);
+      setEditingId(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setNewCharacter({ 
+      name: '', 
+      health: '',
+      stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+    });
+    setShowForm(false);
+    setEditingId(null);
   };
 
   const removeCharacter = (id) => {
@@ -43,7 +103,7 @@ const CharacterList = () => {
   const adjustCharacterHealth = (id, amount) => {
     const updatedCharacters = characters.map(character => {
       if (character.id === id) {
-        const newHealth = Math.max(0, Math.min(20, character.health + amount));
+        const newHealth = character.health + amount;
         return { ...character, health: newHealth };
       }
       return character;
@@ -61,22 +121,22 @@ const CharacterList = () => {
   return (
     <div className="character-list">      
       <div className="add-character-section">
-        {!showForm ? (
-          <div 
-            className="show-form-btn"
-            onClick={() => setShowForm(true)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                setShowForm(true);
-              }
-            }}
-          >
-            Add New Character
-          </div>
-        ) : (
-          <div className="add-character-form">
+        <div 
+          className={`show-form-btn ${showForm ? 'hidden' : ''}`}
+          onClick={() => setShowForm(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setShowForm(true);
+            }
+          }}
+        >
+          Add New Character
+        </div>
+        <div className={`add-character-form ${!showForm ? 'hidden' : ''}`}>
+          <div className="form-field">
+            {editingId && <label>Name</label>}
             <input
               ref={firstInputRef}
               type="text"
@@ -85,48 +145,61 @@ const CharacterList = () => {
               value={newCharacter.name}
               onChange={handleInputChange}
             />
+          </div>
+          <div className="form-field">
+            {editingId && <label>Health</label>}
             <input
               type="number"
               name="health"
-              placeholder="Health (default: 9)"
-              min="1"
-              max="20"
+              placeholder="Health"
               value={newCharacter.health}
               onChange={handleInputChange}
             />
-            <div className="form-buttons">
-              <div 
-                onClick={addCharacter}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    addCharacter();
-                  }
-                }}
-              >
-                Add Character
-              </div>
-              <div 
-                className="cancel-btn"
-                onClick={() => {
-                  setShowForm(false);
-                  setNewCharacter({ name: '', health: 9 });
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    setShowForm(false);
-                    setNewCharacter({ name: '', health: 9 });
-                  }
-                }}
-              >
-                Cancel
-              </div>
+          </div>
+          <div className="stats-section">
+            <h5>Stats</h5>
+            <div className="stats-grid">
+              {stats.map(stat => (
+                <div key={stat} className="stat-control">
+                  <label>{stat}</label>
+                  <input
+                    type="number"
+                    value={newCharacter.stats[stat] || ''}
+                    onChange={(e) => handleStatChange(stat, e.target.value)}
+                    className="stat-input"
+                  />
+                </div>
+              ))}
             </div>
           </div>
-        )}
+          <div className="form-buttons">
+            <div 
+              onClick={editingId ? saveEdit : addCharacter}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  editingId ? saveEdit() : addCharacter();
+                }
+              }}
+            >
+              {editingId ? 'Save Changes' : 'Add Character'}
+            </div>
+            <div 
+              className="cancel-btn"
+              onClick={cancelEdit}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  cancelEdit();
+                }
+              }}
+            >
+              Cancel
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="characters-container">
@@ -136,52 +209,75 @@ const CharacterList = () => {
               <h3>{character.name}</h3>
               <div className="character-health">
                 Health: {character.health}
+                <div className="inline-health-controls">
+                  <div
+                    onClick={() => adjustCharacterHealth(character.id, -1)}
+                    className="health-btn minus-btn"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        adjustCharacterHealth(character.id, -1);
+                      }
+                    }}
+                  >
+                    −
+                  </div>
+                  <div
+                    onClick={() => adjustCharacterHealth(character.id, 1)}
+                    className="health-btn plus-btn"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        adjustCharacterHealth(character.id, 1);
+                      }
+                    }}
+                  >
+                    +
+                  </div>
+                </div>
               </div>
-              <div 
-                className="remove-btn"
-                onClick={() => removeCharacter(character.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    removeCharacter(character.id);
-                  }
-                }}
-              >
-                ×
+              <div className="character-actions">
+                <div 
+                  className="edit-btn"
+                  onClick={() => startEditing(character)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      startEditing(character);
+                    }
+                  }}
+                >
+                  Edit
+                </div>
+                <div 
+                  className="remove-btn"
+                  onClick={() => removeCharacter(character.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      removeCharacter(character.id);
+                    }
+                  }}
+                >
+                  ×
+                </div>
               </div>
             </div>
-            <div className="character-health-controls">
-              <div
-                onClick={() => adjustCharacterHealth(character.id, -1)}
-                className="health-btn minus-btn"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    adjustCharacterHealth(character.id, -1);
-                  }
-                }}
-              >
-                −
-              </div>
-              <div className="health-display">
-                {character.health}
-              </div>
-              <div
-                onClick={() => adjustCharacterHealth(character.id, 1)}
-                className="health-btn plus-btn"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    adjustCharacterHealth(character.id, 1);
-                  }
-                }}
-              >
-                +
+            <div className="character-stats">
+              <div className="stats-grid">
+                {stats.map(stat => (
+                  <div key={stat} className="stat-display">
+                    <span className="stat-label">{stat}:</span>
+                    <span className="stat-value">{character.stats?.[stat]}</span>
+                  </div>
+                ))}
               </div>
             </div>
+
           </div>
         ))}
       </div>
