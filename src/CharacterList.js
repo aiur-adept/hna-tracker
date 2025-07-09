@@ -6,7 +6,7 @@ import DBService from './DBService';
 const CharacterList = () => {
   const [characters, setCharacters] = useState(DBService.getCharacterList());
 
-  const [newCharacter, setNewCharacter] = useState({ name: '' });
+  const [newCharacter, setNewCharacter] = useState({ name: '', health: 9 });
   const [showForm, setShowForm] = useState(false);
   const firstInputRef = useRef(null);
 
@@ -14,7 +14,7 @@ const CharacterList = () => {
     const { name, value } = e.target;
     setNewCharacter(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'health' ? parseInt(value) || 9 : value
     }));
   };
 
@@ -22,11 +22,12 @@ const CharacterList = () => {
     if (newCharacter.name) {
       const updatedCharacters = [...characters, {
         id: Date.now(),
-        name: newCharacter.name
+        name: newCharacter.name,
+        health: newCharacter.health
       }];
       setCharacters(updatedCharacters);
       DBService.saveCharacterList(updatedCharacters);
-      setNewCharacter({ name: '' });
+      setNewCharacter({ name: '', health: 9 });
       setShowForm(false);
     }
   };
@@ -37,6 +38,18 @@ const CharacterList = () => {
       setCharacters(updatedCharacters);
       DBService.saveCharacterList(updatedCharacters);
     }
+  };
+
+  const adjustCharacterHealth = (id, amount) => {
+    const updatedCharacters = characters.map(character => {
+      if (character.id === id) {
+        const newHealth = Math.max(0, Math.min(20, character.health + amount));
+        return { ...character, health: newHealth };
+      }
+      return character;
+    });
+    setCharacters(updatedCharacters);
+    DBService.saveCharacterList(updatedCharacters);
   };
 
   useEffect(() => {
@@ -72,6 +85,15 @@ const CharacterList = () => {
               value={newCharacter.name}
               onChange={handleInputChange}
             />
+            <input
+              type="number"
+              name="health"
+              placeholder="Health (default: 9)"
+              min="1"
+              max="20"
+              value={newCharacter.health}
+              onChange={handleInputChange}
+            />
             <div className="form-buttons">
               <div 
                 onClick={addCharacter}
@@ -89,14 +111,14 @@ const CharacterList = () => {
                 className="cancel-btn"
                 onClick={() => {
                   setShowForm(false);
-                  setNewCharacter({ name: '' });
+                  setNewCharacter({ name: '', health: 9 });
                 }}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     setShowForm(false);
-                    setNewCharacter({ name: '' });
+                    setNewCharacter({ name: '', health: 9 });
                   }
                 }}
               >
@@ -112,6 +134,9 @@ const CharacterList = () => {
           <div key={character.id} className="character-item">
             <div className="character-header">
               <h3>{character.name}</h3>
+              <div className="character-health">
+                Health: {character.health}
+              </div>
               <div 
                 className="remove-btn"
                 onClick={() => removeCharacter(character.id)}
@@ -124,6 +149,37 @@ const CharacterList = () => {
                 }}
               >
                 ×
+              </div>
+            </div>
+            <div className="character-health-controls">
+              <div
+                onClick={() => adjustCharacterHealth(character.id, -1)}
+                className="health-btn minus-btn"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    adjustCharacterHealth(character.id, -1);
+                  }
+                }}
+              >
+                −
+              </div>
+              <div className="health-display">
+                {character.health}
+              </div>
+              <div
+                onClick={() => adjustCharacterHealth(character.id, 1)}
+                className="health-btn plus-btn"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    adjustCharacterHealth(character.id, 1);
+                  }
+                }}
+              >
+                +
               </div>
             </div>
           </div>

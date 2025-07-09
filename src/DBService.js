@@ -7,10 +7,10 @@ const initial = {
   { id: 5, name: 'leivosa', check: 11, stat: 'brawn', description: 'levitation' }
   ],
   characters: [
-    { id: 1, name: 'Boots' },
-    { id: 2, name: 'Juniper' },
-    { id: 3, name: 'Maeve' },
-    { id: 4, name: 'Naya' }
+    { id: 1, name: 'Boots', health: 9 },
+    { id: 2, name: 'Juniper', health: 9 },
+    { id: 3, name: 'Maeve', health: 9 },
+    { id: 4, name: 'Naya', health: 9 }
   ]
 };
 
@@ -38,6 +38,17 @@ const DBService = {
 
   saveCharacterList: (characters) => {
     localStorage.setItem('characters', JSON.stringify(characters));
+    localStorage.setItem('characters-timestamp', Date.now().toString());
+  },
+
+  updateCharacterHealth: (characterId, health) => {
+    const characters = DBService.getCharacterList();
+    const updatedCharacters = characters.map(character => 
+      character.id === characterId 
+        ? { ...character, health: Math.max(0, Math.min(20, health)) }
+        : character
+    );
+    DBService.saveCharacterList(updatedCharacters);
   },
 
 };

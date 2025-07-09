@@ -22,7 +22,7 @@
   margin-top: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   align-items: end;
 }
@@ -46,6 +46,72 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.character-health {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  background: var(--dark-grey);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--dark-grey-light);
+}
+
+.character-health-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--dark-grey);
+  border-radius: 6px;
+  border: 1px solid var(--dark-grey-light);
+}
+
+.character-health-controls .health-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  font-weight: bold;
+  user-select: none;
+}
+
+.character-health-controls .health-btn:hover {
+  background: var(--primary-green-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.character-health-controls .health-btn.minus-btn {
+  background: var(--error);
+}
+
+.character-health-controls .health-btn.minus-btn:hover {
+  background: #d32f2f;
+}
+
+.character-health-controls .health-display {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+  background: var(--surface);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--dark-grey-light);
 }
 
 .character-header h3 {
@@ -139,6 +205,10 @@
   margin-top: 16px;
 }
 
+.add-character-form input[type="number"] {
+  grid-column: 2;
+}
+
 .form-buttons div {
   background: var(--primary-green);
   color: white;
@@ -174,6 +244,10 @@
   .add-character-form {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+  
+  .add-character-form input[type="number"] {
+    grid-column: 1;
   }
   
   .form-buttons {

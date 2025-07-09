@@ -1,18 +1,5 @@
 import React from 'react';
 
-const renderHealthDots = (health) => {
-  const dots = [];
-  for (let i = 0; i < 9; i++) {
-    dots.push(
-      <div 
-        key={i} 
-        className={`health-dot ${i < health ? 'filled' : 'empty'}`}
-      />
-    );
-  }
-  return dots;
-};
-
 const HealthControls = ({ participant, onAdjustHealth }) => (
   <div className="health-controls">
     <div
@@ -28,8 +15,8 @@ const HealthControls = ({ participant, onAdjustHealth }) => (
     >
       −
     </div>
-    <div className="health-dots">
-      {renderHealthDots(participant.health)}
+    <div className="health-display">
+      {participant.health} HP
     </div>
     <div
       onClick={() => onAdjustHealth(participant.id, 1)}

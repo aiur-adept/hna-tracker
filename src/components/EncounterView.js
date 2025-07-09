@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import InitiativeList from './InitiativeList';
 import AddParticipantModal from './AddParticipantModal';
 import EncounterControls from './EncounterControls';
+import DBService from '../DBService';
 
 const EncounterView = ({ 
   initiativeOrder, 
@@ -81,6 +82,13 @@ const EncounterView = ({
         : participant
     );
     
+    const updatedParticipant = updatedOrder.find(p => p.id === participantId);
+    
+    // Update persistent character health if this is a character (not a temporary participant)
+    if (updatedParticipant && characters.find(c => c.id === participantId)) {
+      DBService.updateCharacterHealth(participantId, updatedParticipant.health);
+    }
+    
     if (currentTurnIndex === updatedOrder.findIndex(p => p.id === participantId)) {
       const nextIndex = getNextActiveIndex();
       const nextParticipantId = updatedOrder[nextIndex].id;
@@ -103,7 +111,7 @@ const EncounterView = ({
   const adjustHealth = (participantId, amount) => {
     const updatedOrder = initiativeOrder.map(participant => {
       if (participant.id === participantId) {
-        const newHealth = Math.max(0, Math.min(9, participant.health + amount));
+        const newHealth = Math.max(0, Math.min(20, participant.health + amount));
         const newStatus = newHealth === 0 ? 'dead' : participant.status;
         return { ...participant, health: newHealth, status: newStatus };
       }
@@ -111,6 +119,12 @@ const EncounterView = ({
     });
     
     const updatedParticipant = updatedOrder.find(p => p.id === participantId);
+    
+    // Update persistent character health if this is a character (not a temporary participant)
+    if (updatedParticipant && characters.find(c => c.id === participantId)) {
+      DBService.updateCharacterHealth(participantId, updatedParticipant.health);
+    }
+    
     if (updatedParticipant && updatedParticipant.health === 0 && updatedParticipant.status === 'dead') {
       const currentIndex = updatedOrder.findIndex(p => p.id === participantId);
       if (currentIndex === currentTurnIndex) {
@@ -130,7 +144,7 @@ const EncounterView = ({
     const participantsWithRolls = newParticipants.map(participant => ({
       ...participant,
       initiative: Math.floor(Math.random() * 20) + 1,
-      health: 9,
+      health: participant.health || 9,
       status: 'active',
       notes: ''
     }));
