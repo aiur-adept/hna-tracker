@@ -58,7 +58,7 @@ const InitiativeItem = ({
             {stats.map(stat => (
               <div key={stat} className="stat-display">
                 <span className="stat-label">{stat}</span>
-                <span className="stat-value">{participant.stats[stat] || 9}</span>
+                <span className="stat-value">{participant.stats[stat] || 10}</span>
               </div>
             ))}
           </div>

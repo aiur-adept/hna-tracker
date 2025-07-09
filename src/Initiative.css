@@ -618,6 +618,240 @@
   transform: none;
 }
 
+.add-participant-modal .modal-header {
+  margin-bottom: 25px;
+}
+
+.add-participant-modal .modal-header h3 {
+  margin: 0 0 20px 0;
+  color: var(--primary-green);
+  font-size: 2rem;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  background: var(--dark-grey);
+  color: var(--text-secondary);
+  border: 1px solid var(--dark-grey-light);
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tab-btn:hover {
+  background: var(--dark-grey-light);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--primary-green);
+  color: white;
+  border-color: var(--primary-green);
+}
+
+.monster-tab,
+.custom-tab {
+  margin-bottom: 25px;
+}
+
+.monster-selection h4,
+.monster-customization h4 {
+  margin-bottom: 15px;
+  color: var(--primary-green);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.monster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.monster-card {
+  background: var(--dark-grey);
+  border: 2px solid var(--dark-grey-light);
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.monster-card:hover {
+  border-color: var(--primary-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.monster-card.selected {
+  border-color: var(--primary-green);
+  background: var(--primary-green);
+  color: white;
+}
+
+.monster-card h5 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.monster-stats {
+  font-size: 0.9rem;
+}
+
+.monster-stats span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.stat-preview {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  font-size: 0.8rem;
+}
+
+.stat-item {
+  color: var(--text-secondary);
+}
+
+.monster-card.selected .stat-item {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.monster-customization {
+  border-top: 1px solid var(--dark-grey-light);
+  padding-top: 20px;
+}
+
+.customization-inputs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.customization-inputs input[type="text"],
+.customization-inputs input[type="number"] {
+  background: var(--dark-grey);
+  border: 1px solid var(--dark-grey-light);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.customization-inputs input[type="text"] {
+  flex: 1;
+  min-width: 150px;
+}
+
+.customization-inputs input[type="number"] {
+  width: 80px;
+}
+
+.customization-inputs input:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.count-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.count-controls span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.count-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.count-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.count-btn:hover {
+  background: var(--primary-green-dark);
+}
+
+.count-buttons input[type="number"] {
+  width: 50px;
+  text-align: center;
+  background: var(--dark-grey);
+  border: 1px solid var(--dark-grey-light);
+  border-radius: 4px;
+  padding: 5px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.add-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.add-btn:hover:not(:disabled) {
+  background: var(--primary-green-dark);
+  transform: translateY(-1px);
+}
+
+.add-btn:disabled {
+  background: var(--dark-grey);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+}
+
 .character-btn.disabled {
   background: var(--dark-grey);
   color: var(--text-secondary);
@@ -1468,6 +1702,55 @@
   .modal-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .tab-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tab-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .monster-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .monster-card {
+    padding: 12px;
+  }
+
+  .monster-card h5 {
+    font-size: 1rem;
+  }
+
+  .stat-preview {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .customization-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .customization-inputs input[type="text"],
+  .customization-inputs input[type="number"] {
+    min-width: auto;
+    width: auto;
+  }
+
+  .count-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .count-buttons {
+    justify-content: center;
   }
 
   .encounter-footer {

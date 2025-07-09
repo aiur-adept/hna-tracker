@@ -1,186 +1,317 @@
-import React, { useState } from 'react';
-import CharacterGrid from './CharacterGrid';
-import CustomParticipantForm from './CustomParticipantForm';
-import SelectedParticipantsList from './SelectedParticipantsList';
+import React, { useState, useEffect } from 'react';
+import DBService from '../DBService';
 
-const AddParticipantModal = ({ characters, initiativeOrder, onAddParticipants, onClose }) => {
-  const [tempSelectedParticipants, setTempSelectedParticipants] = useState([]);
-  const [tempCustomName, setTempCustomName] = useState('');
-  const [tempCustomCount, setTempCustomCount] = useState(1);
-  const [tempCustomNotes, setTempCustomNotes] = useState('');
-  const [tempCustomHealth, setTempCustomHealth] = useState('');
-  const [tempCustomStats, setTempCustomStats] = useState({});
-  const [showCustomModal, setShowCustomModal] = useState(false);
+const AddParticipantModal = ({ isOpen, onClose, onAddParticipants }) => {
+  const [activeTab, setActiveTab] = useState('monster');
+  const [monsters, setMonsters] = useState([]);
+  const [selectedMonster, setSelectedMonster] = useState(null);
+  const [monsterCount, setMonsterCount] = useState(1);
+  const [customName, setCustomName] = useState('');
+  const [customCount, setCustomCount] = useState(1);
+  const [customNotes, setCustomNotes] = useState('');
+  const [customHealth, setCustomHealth] = useState('');
+  const [customStats, setCustomStats] = useState({});
 
-  const addCharacterToEncounter = (character) => {
-    if (!tempSelectedParticipants.find(p => String(p.id) === String(character.id) && p.type === 'character') &&
-        !initiativeOrder.find(p => String(p.id) === String(character.id) && p.type === 'character')) {
-      setTempSelectedParticipants(prev => [...prev, {
-        id: character.id,
-        name: character.name,
-        type: 'character',
-        health: character.health || 9,
-        stats: character.stats || {}
-      }]);
+  useEffect(() => {
+    if (isOpen) {
+      setMonsters(DBService.getMonsterList());
     }
+  }, [isOpen]);
+
+  const handleMonsterSelect = (monster) => {
+    setSelectedMonster(monster);
+    setCustomName(monster.name);
+    setCustomHealth(monster.health.toString());
+    setCustomStats(monster.stats || {});
   };
 
-  const addCustomParticipantToEncounter = () => {
-    if (tempCustomName.trim() && tempCustomCount > 0) {
-      const newParticipants = Array.from({ length: tempCustomCount }, (_, index) => ({
-        id: `custom-${Date.now()}-${index}`,
-        name: tempCustomCount === 1 ? tempCustomName : `${tempCustomName} ${index + 1}`,
-        type: 'custom',
-        notes: tempCustomNotes.trim(),
-        health: tempCustomHealth || 9,
-        stats: tempCustomStats
+  const handleAddMonsterParticipants = () => {
+    if (selectedMonster && monsterCount > 0) {
+      const newParticipants = Array.from({ length: monsterCount }, (_, index) => ({
+        id: `monster-${selectedMonster.id}-${Date.now()}-${index}`,
+        name: monsterCount === 1 ? selectedMonster.name : `${selectedMonster.name} ${index + 1}`,
+        type: 'monster',
+        health: selectedMonster.health,
+        stats: selectedMonster.stats || {},
+        notes: `Based on ${selectedMonster.name} template`
       }));
-      setTempSelectedParticipants(prev => [...prev, ...newParticipants]);
-      setTempCustomName('');
-      setTempCustomCount(1);
-      setTempCustomNotes('');
-      setTempCustomHealth('');
-      setTempCustomStats({});
-      setShowCustomModal(false);
+      onAddParticipants(newParticipants);
+      handleClose();
     }
   };
 
-  const removeTempParticipant = (id) => {
-    setTempSelectedParticipants(prev => prev.filter(p => p.id !== id));
-  };
-
-  const finalizeAddParticipants = () => {
-    if (tempSelectedParticipants.length > 0) {
-      onAddParticipants(tempSelectedParticipants);
+  const handleAddCustomParticipants = () => {
+    if (customName.trim() && customCount > 0) {
+      const newParticipants = Array.from({ length: customCount }, (_, index) => ({
+        id: `custom-${Date.now()}-${index}`,
+        name: customCount === 1 ? customName : `${customName} ${index + 1}`,
+        type: 'custom',
+        notes: customNotes.trim(),
+        health: customHealth || 9,
+        stats: customStats
+      }));
+      onAddParticipants(newParticipants);
+      handleClose();
     }
+  };
+
+  const handleClose = () => {
+    setActiveTab('monster');
+    setSelectedMonster(null);
+    setMonsterCount(1);
+    setCustomName('');
+    setCustomCount(1);
+    setCustomNotes('');
+    setCustomHealth('');
+    setCustomStats({});
     onClose();
   };
 
-  const cancelAddParticipants = () => {
-    setTempSelectedParticipants([]);
-    setTempCustomName('');
-    setTempCustomCount(1);
-    setTempCustomNotes('');
-    setTempCustomHealth('');
-    setTempCustomStats({});
-    onClose();
-  };
+  const stats = ['grit', 'fight', 'flight', 'brains', 'brawn', 'charm'];
 
-  const openCustomModal = () => {
-    setShowCustomModal(true);
-  };
-
-  const closeCustomModal = () => {
-    setTempCustomName('');
-    setTempCustomCount(1);
-    setTempCustomNotes('');
-    setTempCustomHealth('');
-    setTempCustomStats({});
-    setShowCustomModal(false);
-  };
+  if (!isOpen) return null;
 
   return (
     <div className="add-participant-modal">
       <div className="modal-content">
-        <h3>Add Participants</h3>
-        
-        <div className="selection-section">
-          <CharacterGrid
-            characters={characters}
-            selectedParticipants={tempSelectedParticipants}
-            onCharacterSelect={addCharacterToEncounter}
-            initiativeOrder={initiativeOrder}
-          />
-
-          <div className="custom-participant-section">
-            <div 
-              onClick={openCustomModal}
-              className="add-custom-participant-btn"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  openCustomModal();
-                }
-              }}
+        <div className="modal-header">
+          <h3>Add Participants</h3>
+          <div className="tab-buttons">
+            <div
+              className={`tab-btn ${activeTab === 'monster' ? 'active' : ''}`}
+              onClick={() => setActiveTab('monster')}
             >
-              Add Custom Participant
+              From Monster Templates
+            </div>
+            <div
+              className={`tab-btn ${activeTab === 'custom' ? 'active' : ''}`}
+              onClick={() => setActiveTab('custom')}
+            >
+              Custom Participant
             </div>
           </div>
-
-          <SelectedParticipantsList
-            selectedParticipants={tempSelectedParticipants}
-            onRemoveParticipant={removeTempParticipant}
-          />
         </div>
-        
+
+        {activeTab === 'monster' && (
+          <div className="monster-tab">
+            <div className="monster-selection">
+              <h4>Select Monster Template</h4>
+              <div className="monster-grid">
+                {monsters.map(monster => (
+                  <div
+                    key={monster.id}
+                    className={`monster-card ${selectedMonster?.id === monster.id ? 'selected' : ''}`}
+                    onClick={() => handleMonsterSelect(monster)}
+                  >
+                    <h5>{monster.name}</h5>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedMonster && (
+              <div className="monster-customization">
+                <h4>Customize Template</h4>
+                <div className="customization-inputs">
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Health"
+                    value={customHealth}
+                    onChange={(e) => setCustomHealth(e.target.value)}
+                  />
+                  <div className="count-controls">
+                    <span>Count:</span>
+                    <div className="count-buttons">
+                      <div
+                        onClick={() => setMonsterCount(prev => Math.max(1, prev - 1))}
+                        className="count-btn"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setMonsterCount(prev => Math.max(1, prev - 1));
+                          }
+                        }}
+                      >
+                        −
+                      </div>
+                      <input
+                        type="number"
+                        value={monsterCount}
+                        onChange={(e) => setMonsterCount(parseInt(e.target.value) || 1)}
+                        min="1"
+                      />
+                      <div
+                        onClick={() => setMonsterCount(prev => prev + 1)}
+                        className="count-btn"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            setMonsterCount(prev => prev + 1);
+                          }
+                        }}
+                      >
+                        +
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="stats-section">
+                  <h5>Stats</h5>
+                  <div className="stats-grid">
+                    {stats.map(stat => (
+                      <div key={stat} className="stat-control">
+                        <label>{stat}</label>
+                        <input
+                          type="number"
+                          value={customStats[stat] || ''}
+                          onChange={(e) => setCustomStats({
+                            ...customStats,
+                            [stat]: e.target.value === '' ? '' : parseInt(e.target.value) || 10
+                          })}
+                          className="stat-input"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'custom' && (
+          <div className="custom-tab">
+            <div className="custom-inputs">
+              <input
+                type="text"
+                placeholder="Name (e.g., 'goblin')"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Notes (optional)"
+                value={customNotes}
+                onChange={(e) => setCustomNotes(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Health"
+                value={customHealth}
+                onChange={(e) => setCustomHealth(e.target.value === '' ? '' : parseInt(e.target.value) || 9)}
+                className="health-input"
+              />
+              <div className="count-controls">
+                <span>Count:</span>
+                <div className="count-buttons">
+                  <div
+                    onClick={() => setCustomCount(prev => Math.max(1, prev - 1))}
+                    className="count-btn"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setCustomCount(prev => Math.max(1, prev - 1));
+                      }
+                    }}
+                  >
+                    −
+                  </div>
+                  <input
+                    type="number"
+                    value={customCount}
+                    onChange={(e) => setCustomCount(parseInt(e.target.value) || 1)}
+                    min="1"
+                  />
+                  <div
+                    onClick={() => setCustomCount(prev => prev + 1)}
+                    className="count-btn"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setCustomCount(prev => prev + 1);
+                      }
+                    }}
+                  >
+                    +
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="stats-section">
+              <h5>Stats</h5>
+              <div className="stats-grid">
+                {stats.map(stat => (
+                  <div key={stat} className="stat-control">
+                    <label>{stat}</label>
+                    <input
+                      type="number"
+                      value={customStats[stat] || ''}
+                      onChange={(e) => setCustomStats({
+                        ...customStats,
+                                                    [stat]: e.target.value === '' ? '' : parseInt(e.target.value) || 10
+                      })}
+                      className="stat-input"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="modal-actions">
           <div 
-            onClick={cancelAddParticipants}
+            onClick={handleClose}
             className="cancel-btn"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
-                cancelAddParticipants();
+                handleClose();
               }
             }}
           >
             Cancel
           </div>
-          <div 
-            onClick={tempSelectedParticipants.length > 0 ? finalizeAddParticipants : undefined}
-            className={`add-to-encounter-btn ${tempSelectedParticipants.length === 0 ? 'disabled' : ''}`}
+          <div
+            onClick={
+              (activeTab === 'monster' && selectedMonster && monsterCount > 0) ||
+              (activeTab === 'custom' && customName.trim() && customCount > 0)
+                ? (activeTab === 'monster' ? handleAddMonsterParticipants : handleAddCustomParticipants)
+                : undefined
+            }
+            className={`add-btn ${
+              (activeTab === 'monster' && (!selectedMonster || monsterCount <= 0)) ||
+              (activeTab === 'custom' && (!customName.trim() || customCount <= 0))
+                ? 'disabled'
+                : ''
+            }`}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if ((e.key === 'Enter' || e.key === ' ') && tempSelectedParticipants.length > 0) {
-                finalizeAddParticipants();
+              if ((e.key === 'Enter' || e.key === ' ') && 
+                  ((activeTab === 'monster' && selectedMonster && monsterCount > 0) ||
+                   (activeTab === 'custom' && customName.trim() && customCount > 0))) {
+                activeTab === 'monster' ? handleAddMonsterParticipants() : handleAddCustomParticipants();
               }
             }}
           >
-            Add to Encounter ({tempSelectedParticipants.length})
+            Add {activeTab === 'monster' ? 'Monster' : 'Custom'} Participants
           </div>
         </div>
       </div>
-
-      {showCustomModal && (
-        <div className="custom-participant-modal">
-          <div className="modal-content">
-            <h3>Add Custom Participant</h3>
-            
-            <CustomParticipantForm
-              customName={tempCustomName}
-              customCount={tempCustomCount}
-              customNotes={tempCustomNotes}
-              customHealth={tempCustomHealth}
-              customStats={tempCustomStats}
-              onCustomNameChange={setTempCustomName}
-              onCustomCountChange={setTempCustomCount}
-              onCustomNotesChange={setTempCustomNotes}
-              onCustomHealthChange={setTempCustomHealth}
-              onCustomStatsChange={setTempCustomStats}
-              onAddCustomParticipant={addCustomParticipantToEncounter}
-            />
-
-            <div className="modal-actions">
-              <div 
-                onClick={closeCustomModal}
-                className="cancel-btn"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    closeCustomModal();
-                  }
-                }}
-              >
-                Cancel
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -7,10 +7,14 @@ const initial = {
   { id: 5, name: 'leivosa', check: 11, stat: 'brawn', description: 'levitation' }
   ],
   characters: [
-    { id: 1, name: 'Boots', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
-    { id: 2, name: 'Juniper', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
-    { id: 3, name: 'Maeve', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } },
-    { id: 4, name: 'Naya', health: 9, stats: { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 } }
+    { id: 1, name: 'Boots', health: 9, stats: { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 } },
+    { id: 2, name: 'Juniper', health: 9, stats: { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 } },
+    { id: 3, name: 'Maeve', health: 9, stats: { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 } },
+    { id: 4, name: 'Naya', health: 9, stats: { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 } }
+  ],
+  monsters: [
+    { id: 1, name: 'Goblin', health: 6, stats: { grit: 4, fight: 6, flight: 8, brains: 4, brawn: 12, charm: 20 } },
+    { id: 3, name: 'Goblin Captain', health: 20, stats: { grit: 4, fight: 6, flight: 8, brains: 4, brawn: 12, charm: 20 } }
   ]
 };
 
@@ -35,7 +39,7 @@ const DBService = {
       // Ensure all characters have stats
       const charactersWithStats = characters.map(character => ({
         ...character,
-        stats: character.stats || { grit: 9, fight: 9, flight: 9, brains: 9, brawn: 9, charm: 9 }
+        stats: character.stats || { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 }
       }));
       return charactersWithStats;
     }
@@ -55,6 +59,24 @@ const DBService = {
         : character
     );
     DBService.saveCharacterList(updatedCharacters);
+  },
+
+  getMonsterList: () => {
+    const storedMonsters = localStorage.getItem('monsters');
+    if (storedMonsters) {
+      const monsters = JSON.parse(storedMonsters);
+      const monstersWithStats = monsters.map(monster => ({
+        ...monster,
+        stats: monster.stats || { grit: 10, fight: 10, flight: 10, brains: 10, brawn: 10, charm: 10 }
+      }));
+      return monstersWithStats;
+    }
+    return initial.monsters;
+  },
+
+  saveMonsterList: (monsters) => {
+    localStorage.setItem('monsters', JSON.stringify(monsters));
+    localStorage.setItem('monsters-timestamp', Date.now().toString());
   },
 
 };

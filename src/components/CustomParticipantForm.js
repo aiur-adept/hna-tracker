@@ -36,7 +36,7 @@ const CustomParticipantForm = ({
           type="number"
           placeholder="Health"
           value={customHealth}
-          onChange={(e) => onCustomHealthChange(e.target.value === '' ? '' : parseInt(e.target.value) || 9)}
+          onChange={(e) => onCustomHealthChange(e.target.value === '' ? '' : parseInt(e.target.value) || 10)}
           onKeyPress={(e) => e.key === 'Enter' && onAddCustomParticipant()}
           className="health-input"
         />
@@ -86,7 +86,7 @@ const CustomParticipantForm = ({
                 value={customStats[stat] || ''}
                 onChange={(e) => onCustomStatsChange({
                   ...customStats,
-                  [stat]: e.target.value === '' ? '' : parseInt(e.target.value) || 9
+                  [stat]: e.target.value === '' ? '' : parseInt(e.target.value) || 10
                 })}
                 className="stat-input"
               />

@@ -3,11 +3,11 @@ import './CharacterList.css';
 
 import DBService from './DBService';
 
-const CharacterList = () => {
-  const [characters, setCharacters] = useState(DBService.getCharacterList());
+const MonsterList = () => {
+  const [monsters, setMonsters] = useState(DBService.getMonsterList());
   const stats = ['grit', 'fight', 'flight', 'brains', 'brawn', 'charm'];
 
-  const [newCharacter, setNewCharacter] = useState({ 
+  const [newMonster, setNewMonster] = useState({ 
     name: '', 
     health: '',
     stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
@@ -18,14 +18,14 @@ const CharacterList = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewCharacter(prev => ({
+    setNewMonster(prev => ({
       ...prev,
       [name]: name === 'health' ? parseInt(value) || 9 : value
     }));
   };
 
   const handleStatChange = (stat, value) => {
-    setNewCharacter(prev => ({
+    setNewMonster(prev => ({
       ...prev,
       stats: {
         ...prev.stats,
@@ -34,17 +34,17 @@ const CharacterList = () => {
     }));
   };
 
-  const addCharacter = () => {
-    if (newCharacter.name) {
-      const updatedCharacters = [...characters, {
+  const addMonster = () => {
+    if (newMonster.name) {
+      const updatedMonsters = [...monsters, {
         id: Date.now(),
-        name: newCharacter.name,
-        health: newCharacter.health,
-        stats: newCharacter.stats
+        name: newMonster.name,
+        health: newMonster.health,
+        stats: newMonster.stats
       }];
-      setCharacters(updatedCharacters);
-      DBService.saveCharacterList(updatedCharacters);
-      setNewCharacter({ 
+      setMonsters(updatedMonsters);
+      DBService.saveMonsterList(updatedMonsters);
+      setNewMonster({ 
         name: '', 
         health: '',
         stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
@@ -53,26 +53,26 @@ const CharacterList = () => {
     }
   };
 
-  const startEditing = (character) => {
-    setEditingId(character.id);
-    setNewCharacter({
-      name: character.name,
-      health: character.health,
-      stats: character.stats || { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
+  const startEditing = (monster) => {
+    setEditingId(monster.id);
+    setNewMonster({
+      name: monster.name,
+      health: monster.health,
+      stats: monster.stats || { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
     });
     setShowForm(true);
   };
 
   const saveEdit = () => {
-    if (newCharacter.name && editingId) {
-      const updatedCharacters = characters.map(character => 
-        character.id === editingId 
-          ? { ...character, name: newCharacter.name, health: newCharacter.health, stats: newCharacter.stats }
-          : character
+    if (newMonster.name && editingId) {
+      const updatedMonsters = monsters.map(monster => 
+        monster.id === editingId 
+          ? { ...monster, name: newMonster.name, health: newMonster.health, stats: newMonster.stats }
+          : monster
       );
-      setCharacters(updatedCharacters);
-      DBService.saveCharacterList(updatedCharacters);
-      setNewCharacter({ 
+      setMonsters(updatedMonsters);
+      DBService.saveMonsterList(updatedMonsters);
+      setNewMonster({ 
         name: '', 
         health: '',
         stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
@@ -83,7 +83,7 @@ const CharacterList = () => {
   };
 
   const cancelEdit = () => {
-    setNewCharacter({ 
+    setNewMonster({ 
       name: '', 
       health: '',
       stats: { grit: '', fight: '', flight: '', brains: '', brawn: '', charm: '' }
@@ -92,24 +92,24 @@ const CharacterList = () => {
     setEditingId(null);
   };
 
-  const removeCharacter = (id) => {
-    if (window.confirm('Are you sure you want to remove this character?')) {
-      const updatedCharacters = characters.filter(character => character.id !== id);
-      setCharacters(updatedCharacters);
-      DBService.saveCharacterList(updatedCharacters);
+  const removeMonster = (id) => {
+    if (window.confirm('Are you sure you want to remove this monster?')) {
+      const updatedMonsters = monsters.filter(monster => monster.id !== id);
+      setMonsters(updatedMonsters);
+      DBService.saveMonsterList(updatedMonsters);
     }
   };
 
-  const adjustCharacterHealth = (id, amount) => {
-    const updatedCharacters = characters.map(character => {
-      if (character.id === id) {
-        const newHealth = character.health + amount;
-        return { ...character, health: newHealth };
+  const adjustMonsterHealth = (id, amount) => {
+    const updatedMonsters = monsters.map(monster => {
+      if (monster.id === id) {
+        const newHealth = monster.health + amount;
+        return { ...monster, health: newHealth };
       }
-      return character;
+      return monster;
     });
-    setCharacters(updatedCharacters);
-    DBService.saveCharacterList(updatedCharacters);
+    setMonsters(updatedMonsters);
+    DBService.saveMonsterList(updatedMonsters);
   };
 
   useEffect(() => {
@@ -132,7 +132,7 @@ const CharacterList = () => {
             }
           }}
         >
-          Add New Character
+          Add New Monster
         </div>
         <div className={`add-character-form ${!showForm ? 'hidden' : ''}`}>
           <div className="form-field">
@@ -141,8 +141,8 @@ const CharacterList = () => {
               ref={firstInputRef}
               type="text"
               name="name"
-              placeholder="Character name"
-              value={newCharacter.name}
+              placeholder="Monster name"
+              value={newMonster.name}
               onChange={handleInputChange}
             />
           </div>
@@ -152,7 +152,7 @@ const CharacterList = () => {
               type="number"
               name="health"
               placeholder="Health"
-              value={newCharacter.health}
+              value={newMonster.health}
               onChange={handleInputChange}
             />
           </div>
@@ -164,7 +164,7 @@ const CharacterList = () => {
                   <label>{stat}</label>
                   <input
                     type="number"
-                    value={newCharacter.stats[stat] || ''}
+                    value={newMonster.stats[stat] || ''}
                     onChange={(e) => handleStatChange(stat, e.target.value)}
                     className="stat-input"
                   />
@@ -174,16 +174,16 @@ const CharacterList = () => {
           </div>
           <div className="form-buttons">
             <div 
-              onClick={editingId ? saveEdit : addCharacter}
+              onClick={editingId ? saveEdit : addMonster}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  editingId ? saveEdit() : addCharacter();
+                  editingId ? saveEdit() : addMonster();
                 }
               }}
             >
-              {editingId ? 'Save Changes' : 'Add Character'}
+              {editingId ? 'Save Changes' : 'Add Monster'}
             </div>
             <div 
               className="cancel-btn"
@@ -203,34 +203,34 @@ const CharacterList = () => {
       </div>
 
       <div className="characters-container">
-        {characters.map(character => (
-          <div key={character.id} className="character-item">
+        {monsters.map(monster => (
+          <div key={monster.id} className="character-item">
             <div className="character-header">
-              <h3>{character.name}</h3>
+              <h3>{monster.name}</h3>
               <div className="character-health">
-                Health: {character.health}
+                Health: {monster.health}
                 <div className="inline-health-controls">
                   <div
-                    onClick={() => adjustCharacterHealth(character.id, -1)}
+                    onClick={() => adjustMonsterHealth(monster.id, -1)}
                     className="health-btn minus-btn"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        adjustCharacterHealth(character.id, -1);
+                        adjustMonsterHealth(monster.id, -1);
                       }
                     }}
                   >
                     −
                   </div>
                   <div
-                    onClick={() => adjustCharacterHealth(character.id, 1)}
+                    onClick={() => adjustMonsterHealth(monster.id, 1)}
                     className="health-btn plus-btn"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        adjustCharacterHealth(character.id, 1);
+                        adjustMonsterHealth(monster.id, 1);
                       }
                     }}
                   >
@@ -241,12 +241,12 @@ const CharacterList = () => {
               <div className="character-actions">
                 <div 
                   className="edit-btn"
-                  onClick={() => startEditing(character)}
+                  onClick={() => startEditing(monster)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      startEditing(character);
+                      startEditing(monster);
                     }
                   }}
                 >
@@ -254,12 +254,12 @@ const CharacterList = () => {
                 </div>
                 <div 
                   className="remove-btn"
-                  onClick={() => removeCharacter(character.id)}
+                  onClick={() => removeMonster(monster.id)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      removeCharacter(character.id);
+                      removeMonster(monster.id);
                     }
                   }}
                 >
@@ -272,7 +272,7 @@ const CharacterList = () => {
                 {stats.map(stat => (
                   <div key={stat} className="stat-display">
                     <span className="stat-label">{stat}:</span>
-                    <span className="stat-value">{character.stats?.[stat]}</span>
+                    <span className="stat-value">{monster.stats?.[stat]}</span>
                   </div>
                 ))}
               </div>
@@ -285,4 +285,4 @@ const CharacterList = () => {
   );
 };
 
-export default CharacterList; 
+export default MonsterList; 

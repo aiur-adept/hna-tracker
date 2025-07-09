@@ -120,6 +120,7 @@ function Nav() {
         setNavLinks([
             { to: "/spell-list", label: "Spell List" },
             { to: "/character-list", label: "Character List" },
+            { to: "/monster-list", label: "Monster List" },
             { to: "/initiative", label: "Initiative" }
         ]);
     }, [pathname]);
